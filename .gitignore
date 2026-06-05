@@ -1,0 +1,5 @@
+MLProject/outputs/
+MLProject/artifacts/
+MLProject/mlruns/
+MLProject/__pycache__/
+*.pyc
