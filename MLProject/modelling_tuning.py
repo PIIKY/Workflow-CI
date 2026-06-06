@@ -136,35 +136,11 @@ def main() -> None:
         return_train_score=True,
     )
 
-    project_run_id = os.getenv("MLFLOW_RUN_ID")
-    run_kwargs = {"run_id": project_run_id} if project_run_id else {"run_name": f"tuning_{model_name}"}
-
-    with mlflow.start_run(**run_kwargs):
-        mlflow.set_tag("mlflow.runName", f"tuning_{model_name}")
-        mlflow.log_param("model_name", model_name)
-        mlflow.log_param("search_method", "RandomizedSearchCV")
-        mlflow.log_param("scoring", "roc_auc")
-        mlflow.log_param("cv_folds", 3)
-        mlflow.log_param("n_iter", n_iter)
-        mlflow.log_param("target", TARGET)
-        mlflow.log_param("train_rows", len(x_train))
-        mlflow.log_param("test_rows", len(x_test))
-
+    mlflow.autolog()
+    with mlflow.start_run(run_name=f"tuning_{model_name}"):
         search.fit(x_train, y_train)
         best_model = search.best_estimator_
         metrics = evaluate_model(best_model, x_test, y_test)
-
-        mlflow.log_params({f"best_{key}": value for key, value in search.best_params_.items()})
-        mlflow.log_metric("best_cv_roc_auc", search.best_score_)
-        mlflow.log_metrics(metrics)
-
-        signature = infer_signature(x_train.head(10), best_model.predict(x_train.head(10)))
-        mlflow.sklearn.log_model(
-            sk_model=best_model,
-            artifact_path="best_model",
-            signature=signature,
-            input_example=x_test.head(5),
-        )
 
         eval_artifacts = save_artifacts(
             f"tuned_{model_name}",

@@ -80,7 +80,13 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t local/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }} MLProject
+          MODEL_DIR=$(find MLProject/mlruns -type d -name "model" | head -n 1)
+          if [ -z "$MODEL_DIR" ]; then
+            echo "Model directory not found in mlruns!"
+            exit 1
+          fi
+          echo "Found model at $MODEL_DIR"
+          mlflow models build-docker -m "$MODEL_DIR" -n "local/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3

@@ -1,8 +1,4 @@
-"""Baseline model comparison for Dicoding MSML final submission.
-
-This script intentionally uses manual MLflow logging so the reviewer can see
-parameters, metrics, models, and additional artifacts for every candidate.
-"""
+"""Baseline model comparison for Dicoding MSML final submission."""
 
 from __future__ import annotations
 
@@ -45,31 +41,21 @@ DATA_DIR = BASE_DIR / "dataset_preprocessing"
 ARTIFACT_DIR = BASE_DIR / "artifacts" / "baseline"
 
 
-def configure_mlflow() -> None:
+def configure_mlflow(force_local: bool = False) -> None:
     """Configure MLflow for either DagsHub remote tracking or local fallback."""
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
     dagshub_owner = os.getenv("DAGSHUB_REPO_OWNER")
     dagshub_repo = os.getenv("DAGSHUB_REPO_NAME")
-    experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "Credit Risk Prediction - Baseline")
 
-    if tracking_uri:
+    if not force_local and tracking_uri:
         mlflow.set_tracking_uri(tracking_uri)
-    elif dagshub_owner and dagshub_repo:
-        mlflow.set_tracking_uri(f"https://dagshub.com/{dagshub_owner}/{dagshub_repo}.mlflow")
+    elif not force_local and dagshub_owner and dagshub_repo:
+        import dagshub
+        dagshub.init(repo_owner=dagshub_owner, repo_name=dagshub_repo, mlflow=True)
     else:
         mlflow.set_tracking_uri(f"file:///{(BASE_DIR / 'mlruns').as_posix()}")
 
-    active_tracking_uri = mlflow.get_tracking_uri()
-    print(f"MLflow tracking URI: {active_tracking_uri}")
-    print(f"MLflow experiment: {experiment_name}")
-    if active_tracking_uri.startswith("file:"):
-        print("WARNING: MLflow is using local file tracking. Set DagsHub env vars before running.")
-
-    if os.getenv("MLFLOW_RUN_ID"):
-        print("MLflow Project run detected; using the run created by `mlflow run`.")
-        return
-
-    mlflow.set_experiment(experiment_name)
+    mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "Credit Risk Prediction - Baseline"))
 
 
 def load_dataset() -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
@@ -268,26 +254,11 @@ def log_model_run(
     y_train: pd.Series,
     y_test: pd.Series,
 ) -> dict[str, Any]:
+    mlflow.autolog()
     with mlflow.start_run(run_name=f"baseline_{model_name}"):
-        params = model_params(model)
-        mlflow.log_params({key: value for key, value in params.items() if isinstance(value, (str, int, float, bool))})
-        mlflow.log_param("model_name", model_name)
-        mlflow.log_param("target", TARGET)
-        mlflow.log_param("train_rows", len(x_train))
-        mlflow.log_param("test_rows", len(x_test))
-
         model.fit(x_train, y_train)
         metrics = evaluate_model(model, x_test, y_test)
-        mlflow.log_metrics(metrics)
-
-        signature = infer_signature(x_train.head(10), model.predict(x_train.head(10)))
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="model",
-            signature=signature,
-            input_example=x_test.head(5),
-        )
-
+        
         artifact_dir = save_artifacts(model_name, model, x_test, y_test, metrics)
         mlflow.log_artifacts(str(artifact_dir), artifact_path="evaluation_artifacts")
 
@@ -295,7 +266,7 @@ def log_model_run(
 
 
 def main() -> None:
-    configure_mlflow()
+    configure_mlflow(force_local=True)
     x_train, x_test, y_train, y_test = load_dataset()
     models = get_candidate_models(y_train)
 
