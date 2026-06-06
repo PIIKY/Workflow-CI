@@ -80,7 +80,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          MODEL_DIR=$(find MLProject/mlruns -type d -name "model" | head -n 1)
+          MODEL_DIR=$(dirname $(find MLProject/mlruns -name "MLmodel" | head -n 1))
           if [ -z "$MODEL_DIR" ]; then
             echo "Model directory not found in mlruns!"
             exit 1
