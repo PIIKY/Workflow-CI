@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.12.7"
   MLFLOW_VERSION: "2.19.0"
   IMAGE_REPOSITORY: workflow-ci-vicky-ferdinand-samuel
 
