@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: "3.12.7"
+  PYTHON_VERSION: "3.11"
   MLFLOW_VERSION: "2.19.0"
   IMAGE_REPOSITORY: workflow-ci-vicky-ferdinand-samuel
 
@@ -80,7 +80,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          MODEL_DIR=$(dirname $(find MLProject/mlruns -name "MLmodel" | head -n 1))
+          MODEL_DIR=$(realpath $(dirname $(find MLProject/mlruns -name "MLmodel" | head -n 1)))
           if [ -z "$MODEL_DIR" ]; then
             echo "Model directory not found in mlruns!"
             exit 1
