@@ -79,17 +79,18 @@ jobs:
           if-no-files-found: error
 
       - name: Build Docker image
-        env:
-          CONDA_PLUGINS_AUTO_ACCEPT_TOS: "yes"
         run: |
-          find MLProject/mlruns -name "conda.yaml" -exec sed -i '/- defaults/d' {} +
+          MLFLOW_DOCKER_UTILS=$(python -c "import mlflow.models.docker_utils as d; print(d.__file__)")
+          echo "Patching MLflow docker_utils.py at $MLFLOW_DOCKER_UTILS"
+          sed -i 's/python3.9/python3.10/g' "$MLFLOW_DOCKER_UTILS"
+
           MODEL_DIR=$(realpath $(dirname $(find MLProject/mlruns -name "MLmodel" | head -n 1)))
           if [ -z "$MODEL_DIR" ]; then
             echo "Model directory not found in mlruns!"
             exit 1
           fi
           echo "Found model at $MODEL_DIR"
-          mlflow models build-docker -m "$MODEL_DIR" -n "local/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}" --env-manager=conda
+          mlflow models build-docker -m "$MODEL_DIR" -n "local/${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
