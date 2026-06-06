@@ -61,7 +61,7 @@ jobs:
         working-directory: MLProject
         run: |
           set +e
-          mlflow run . --env-manager=local
+          mlflow run . --env-manager=local --experiment-name="Credit Risk Prediction - Baseline"
           RUN_STATUS=$?
           echo "status=$RUN_STATUS" >> "$GITHUB_OUTPUT"
           echo "MLFLOW_RUN_STATUS=$RUN_STATUS" >> "$GITHUB_ENV"
