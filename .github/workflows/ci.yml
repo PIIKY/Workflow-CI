@@ -79,6 +79,8 @@ jobs:
           if-no-files-found: error
 
       - name: Build Docker image
+        env:
+          CONDA_PLUGINS_AUTO_ACCEPT_TOS: "yes"
         run: |
           MODEL_DIR=$(realpath $(dirname $(find MLProject/mlruns -name "MLmodel" | head -n 1)))
           if [ -z "$MODEL_DIR" ]; then

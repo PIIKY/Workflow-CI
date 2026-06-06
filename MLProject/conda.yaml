@@ -1,6 +1,7 @@
 name: workflow-ci-mlflow
 channels:
   - conda-forge
+  - nodefaults
 dependencies:
   - python=3.12.7
   - pip=24.3.1
