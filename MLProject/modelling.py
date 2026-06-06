@@ -255,7 +255,7 @@ def log_model_run(
     y_test: pd.Series,
 ) -> dict[str, Any]:
     mlflow.autolog()
-    with mlflow.start_run(run_name=f"baseline_{model_name}"):
+    with mlflow.start_run(run_name=f"baseline_{model_name}", nested=True):
         model.fit(x_train, y_train)
         metrics = evaluate_model(model, x_test, y_test)
         

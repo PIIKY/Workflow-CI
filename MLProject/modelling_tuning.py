@@ -137,7 +137,7 @@ def main() -> None:
     )
 
     mlflow.autolog()
-    with mlflow.start_run(run_name=f"tuning_{model_name}"):
+    with mlflow.start_run(run_name=f"tuning_{model_name}", nested=True):
         search.fit(x_train, y_train)
         best_model = search.best_estimator_
         metrics = evaluate_model(best_model, x_test, y_test)
