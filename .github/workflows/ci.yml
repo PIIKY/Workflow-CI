@@ -82,7 +82,7 @@ jobs:
         run: |
           MLFLOW_DOCKER_UTILS=$(python -c "import mlflow.models.docker_utils as d; print(d.__file__)")
           echo "Patching MLflow docker_utils.py at $MLFLOW_DOCKER_UTILS"
-          sed -i 's/python3.9/python3.10/g' "$MLFLOW_DOCKER_UTILS"
+          sed -i 's|https://bootstrap.pypa.io/get-pip.py|https://bootstrap.pypa.io/pip/3.9/get-pip.py|g' "$MLFLOW_DOCKER_UTILS"
 
           MODEL_DIR=$(realpath $(dirname $(find MLProject/mlruns -name "MLmodel" | head -n 1)))
           if [ -z "$MODEL_DIR" ]; then
